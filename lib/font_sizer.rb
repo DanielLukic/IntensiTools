@@ -58,7 +58,7 @@ CELLS_PER_COLUMN = 8
 font_file_pathes.sort.each do |input_filename|
   puts "processing #{input_filename}"
 
-  raise "file not found: #{inputFileName}" unless File.exist?(input_filename)
+  raise "file not found: #{input_filename}" unless File.exist?(input_filename)
   
   image = load_image input_filename
   splicer = create_splicer image
