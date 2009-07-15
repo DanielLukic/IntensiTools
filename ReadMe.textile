@@ -1,0 +1,13 @@
+Helper tools used in IntensiBuild/IntensiGame related projects.
+
+h1. Description
+
+For now only the font_sizer.rb script is used by IntensiBuild to determine the character widths for font image files.
+
+h1. License
+
+This is open source software. See the gpl.txt file for more infomation.
+
+Note that some files are included for which different licenses may apply.
+
+Note that for all files that are probably 'mine', the GPL applies.
