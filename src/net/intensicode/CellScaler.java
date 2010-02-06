@@ -4,19 +4,17 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 
-public final class CellResizer
+public final class CellScaler
     {
     public static void main( final String[] aArgs ) throws IOException
         {
         final int cellsPerRow = 16;
         final int cellsPerColumn = 8;
 
-        final int toCellWidth = 16;
-        final int toCellHeight = 16;
+        final int toCellWidth = 20;
+        final int toCellHeight = 20;
 
-        final boolean centered = true;
-
-        final String inputFileName = "res/android/DroidShock/320x480/p/textfont.png";
+        final String inputFileName = "res/android/DroidShock/320x480/p/menufont.png";
         final String outputFileName = makeOutputFileName( inputFileName );
 
         final File inputFile = new File( inputFileName );
@@ -55,7 +53,7 @@ public final class CellResizer
                 final int inputY = y * fromCellHeight;
                 inputImage.getRGB( inputX, inputY, fromCellWidth, fromCellHeight, inputBuffer, 0, fromCellWidth );
 
-                convert( inputBuffer, fromCellWidth, outputBuffer, toCellWidth, centered );
+                convert( inputBuffer, fromCellWidth, outputBuffer, toCellWidth );
 
                 final int outputX = x * toCellWidth;
                 final int outputY = y * toCellHeight;
@@ -66,21 +64,19 @@ public final class CellResizer
         ImageIO.write( outputImage, "png", new File( outputFileName ) );
         }
 
-    private static void convert( final int[] aInput, final int aFromWidth, final int[] aOutput, final int aToWidth, final boolean aCentered )
+    private static void convert( final int[] aInput, final int aFromWidth, final int[] aOutput, final int aToWidth )
         {
         final int fromHeight = aInput.length / aFromWidth;
         final int toHeight = aOutput.length / aToWidth;
-        final int alignX = aCentered ? ( aFromWidth - aToWidth ) / 2 : 0;
-        final int alignY = aCentered ? ( fromHeight - toHeight ) / 2 : 0;
 
         for ( int y = 0; y < toHeight; y++ )
             {
-            final int inputY = y + alignY;
+            final int inputY = y * ( fromHeight - 1 ) / ( toHeight - 1 );
             if ( inputY < 0 || inputY >= fromHeight ) continue;
 
             for ( int x = 0; x < aToWidth; x++ )
                 {
-                final int inputX = x + alignX;
+                final int inputX = x * ( aFromWidth - 1 ) / ( aToWidth - 1 );
                 if ( inputX < 0 || inputX >= aFromWidth ) continue;
 
                 aOutput[ x + y * aToWidth ] = aInput[ inputX + inputY * aFromWidth ];

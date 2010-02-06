@@ -2,25 +2,16 @@ package net.intensicode;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 
 public final class FontSizer
     {
-    public static final void main( final String[] aArgs ) throws IOException
+    public static void main( final String[] aArgs ) throws IOException
         {
         final ArrayList<String> configs = new ArrayList<String>();
-        configs.add( "BlockShock/176x208" );
-        configs.add( "BlockShock/240x320" );
-        configs.add( "BlockShock/LOW" );
-        configs.add( "CuteBlocks/176x208" );
-        configs.add( "CuteBlocks/240x320" );
-        configs.add( "CuteBlocks/480x640" );
-        configs.add( "WebShock/Default" );
+        configs.add( "android/DroidShock/320x480/p" );
 
         final String[] fonts = { "menufont", "scorefont", "textfont" };
 
@@ -34,7 +25,7 @@ public final class FontSizer
             }
         }
 
-    public static final void process( final String aInputFileName ) throws IOException
+    public static void process( final String aInputFileName ) throws IOException
         {
         final int cellsPerRow = 16;
         final int cellsPerColumn = 8;
@@ -47,16 +38,16 @@ public final class FontSizer
         final String outputFileName = makeOutputFileName( aInputFileName );
 
         final File inputFile = new File( aInputFileName );
-        if ( inputFile.exists() == false ) showError( "Input file does not exist: " + inputFile );
+        if ( !inputFile.exists() ) showError( "Input file does not exist: " + inputFile );
 
         final BufferedImage inputImage = ImageIO.read( inputFile );
         final int cellWidth = inputImage.getWidth() / cellsPerRow;
-        if ( inputImage.getWidth() != (cellsPerRow * cellWidth) )
+        if ( inputImage.getWidth() != ( cellsPerRow * cellWidth ) )
             {
             showError( "Bad input image width: " + inputImage.getWidth() );
             }
         final int cellHeight = inputImage.getHeight() / cellsPerColumn;
-        if ( inputImage.getHeight() != (cellsPerColumn * cellHeight) )
+        if ( inputImage.getHeight() != ( cellsPerColumn * cellHeight ) )
             {
             showError( "Bad input image height: " + inputImage.getHeight() );
             }
@@ -96,7 +87,7 @@ public final class FontSizer
         output.close();
         }
 
-    public static final int findWidth( final int[] aBuffer, final int aWidth, final int aHeight )
+    public static int findWidth( final int[] aBuffer, final int aWidth, final int aHeight )
         {
         for ( int x = aWidth - 1; x >= 0; x-- )
             {
@@ -112,13 +103,13 @@ public final class FontSizer
         return 0;
         }
 
-    public static final void showError( final String aMessage )
+    public static void showError( final String aMessage )
         {
         System.out.println( "ERROR: " + aMessage );
         System.exit( 10 );
         }
 
-    public static final String makeOutputFileName( final String aaInputFileName )
+    public static String makeOutputFileName( final String aaInputFileName )
         {
         final StringBuilder builder = new StringBuilder();
 
