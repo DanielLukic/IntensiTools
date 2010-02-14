@@ -1,4 +1,4 @@
-package net.intensicode;
+package net.intensicode.tools;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
