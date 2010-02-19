@@ -51,13 +51,13 @@ module BFM
       # From ActionListener
 
       def actionPerformed(event)
-        @controller.on_font_name_changed(selected_font_name)
+        @controller.on_settings_changed
       end
 
       # From ChangeListener
 
       def stateChanged(event)
-        @controller.on_font_size_changed(selected_font_size)
+        @controller.on_settings_changed
       end
 
       # From FontSettingsProvider

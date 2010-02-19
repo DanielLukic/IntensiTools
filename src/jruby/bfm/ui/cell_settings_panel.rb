@@ -12,6 +12,28 @@ module BFM
     import java.util.logging.Logger
 
 
+    class CellSize
+
+      attr_accessor :width, :height
+
+      def initialize(initial_size)
+        @width = @height = initial_size
+      end
+
+    end
+
+
+    class CellOffset
+
+      attr_accessor :top, :left, :right, :bottom
+
+      def initialize
+        @top = @left = @right = @bottom = 0
+      end
+
+    end
+
+
     class CellSettingsPanel < JPanel # implements ChangeListener, CellSettingsProvider
 
       include javax.swing.event.ChangeListener
@@ -20,31 +42,73 @@ module BFM
         super()
 
         @controller = controller
+        @cell_size = CellSize.new(INITIAL_CELL_SIZE)
+        @cell_offset = CellOffset.new
 
-        cell_size_model = SpinnerNumberModel.new( 16, 4, 128, 1 )
-        @cell_size_spinner = JSpinner.new( cell_size_model )
-        @cell_size_label = JLabel.new( "Cell size" )
-        cell_offset_model = SpinnerNumberModel.new( 0, -128, 128, 1 )
-        @cell_offset_spinner = JSpinner.new( cell_offset_model )
-        @cell_offset_label = JLabel.new( "Cell offset" )
+        cell_size_panel = JPanel.new(MigLayout.new)
+        cell_size_panel.set_border(TitledBorder.new("Size"))
+        add_size_controls cell_size_panel, :width
+        add_size_controls cell_size_panel, :height
 
-        @cell_size_spinner.addChangeListener( self )
-        @cell_size_label.setLabelFor( @cell_size_spinner )
+        cell_offset_panel = JPanel.new(MigLayout.new)
+        cell_offset_panel.set_border(TitledBorder.new("Offset"))
+        add_offset_controls cell_offset_panel, :top, 0, 1
+        add_offset_controls cell_offset_panel, :left, 2, 0
+        add_offset_controls cell_offset_panel, :right, 2, 3
+        add_offset_controls cell_offset_panel, :bottom, 4, 1
 
-        @cell_offset_spinner.addChangeListener( self )
-        @cell_offset_label.setLabelFor( @cell_offset_spinner )
+        set_layout(MigLayout.new)
+        set_border(TitledBorder.new("Cell Settings"))
+        add cell_size_panel, "wrap"
+        add cell_offset_panel, "wrap"
 
-        set_layout( MigLayout.new )
-        set_border( TitledBorder.new( "Cell Settings" ) )
-        add( @cell_size_label )
-        add( @cell_size_spinner, "wrap" )
-        add( @cell_offset_label )
-        add( @cell_offset_spinner, "wrap" )
+        @controller.set_cell_settings_provider self
+      end
 
-        @controller.set_cell_settings_provider( self )
+      def update_cell_size(size_id, spinner)
+        @cell_size.send "#{size_id}=".to_sym, spinner.value
+        notify_new_cell_size
+      end
+
+      def update_cell_offset(offset_id, spinner)
+        @cell_offset.send "#{offset_id}=".to_sym, spinner.value
+        notify_new_cell_offset
+      end
+
+      private
+
+      def add_size_controls(panel, size_id)
+        cell_size_model = SpinnerNumberModel.new(INITIAL_CELL_SIZE, 4, 128, 1)
+        spinner = JSpinner.new(cell_size_model)
+        spinner.add_change_listener CellSizeUpdater.new(self, size_id)
+        label = create_label(size_id.to_s, spinner)
+        panel.add spinner
+        panel.add label, "wrap"
+      end
+
+      def add_offset_controls(panel, offset_id, row, column)
+        spinner = create_cell_offset_spinner(offset_id)
+        label = create_label(offset_id.to_s, spinner)
+        panel.add spinner, "cell #{column} #{row + 1} 1 1"
+        panel.add label, "cell #{column} #{row} 1 1"
+      end
+
+      def create_cell_offset_spinner(offset_id)
+        cell_offset_model = SpinnerNumberModel.new(0, -128, 128, 1)
+        spinner = JSpinner.new(cell_offset_model)
+        spinner.add_change_listener CellOffsetUpdater.new(self, offset_id)
+        spinner
+      end
+
+      def create_label(text, component)
+        label = JLabel.new(text)
+        label.set_label_for component
+        label
       end
 
       # From ChangeListener
+
+      public
 
       def stateChanged(event)
         if event.source == @cell_size_spinner
@@ -58,12 +122,14 @@ module BFM
 
       # From CellSettingsProvider
 
+      public
+
       def selected_cell_size
-        @cell_size_spinner.value
+        @cell_size
       end
 
       def selected_cell_offset
-        @cell_offset_spinner.value
+        @cell_offset
       end
 
       # Implementation
@@ -71,11 +137,46 @@ module BFM
       private
 
       def notify_new_cell_size
-        @controller.on_cell_size_changed( selected_cell_size )
+        @controller.on_settings_changed
       end
 
       def notify_new_cell_offset
-        @controller.on_cell_offset_changed( selected_cell_offset )
+        @controller.on_settings_changed
+      end
+
+
+      INITIAL_CELL_SIZE = 16
+
+
+      class CellSizeUpdater
+
+        include javax.swing.event.ChangeListener
+
+        def initialize(parent, size_id)
+          @parent = parent
+          @size_id = size_id
+        end
+
+        def stateChanged(event)
+          @parent.update_cell_size @size_id, event.source
+        end
+
+      end
+
+
+      class CellOffsetUpdater
+
+        include javax.swing.event.ChangeListener
+
+        def initialize(parent, offset_id)
+          @parent = parent
+          @offset_id = offset_id
+        end
+
+        def stateChanged(event)
+          @parent.update_cell_offset @offset_id, event.source
+        end
+
       end
 
     end

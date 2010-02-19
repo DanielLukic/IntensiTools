@@ -8,7 +8,10 @@ module BFM
     import java.awt.image.BufferedImage
     import java.util.logging.Logger
 
-    class FontCellRenderPanel < JPanel # implements SettingsChangedListener
+    class FontCellRenderPanel < JPanel
+
+      include java.awt.event.KeyListener
+      include java.awt.event.MouseMotionListener
 
       def initialize(controller, renderer)
         super()
@@ -19,6 +22,31 @@ module BFM
         @char_buffer = Java::char[1].new
 
         @controller.add_settings_changed_listener(self)
+
+        add_mouse_motion_listener self
+        add_key_listener self
+        set_focusable true
+      end
+
+      # MouseMotionListener
+
+      def mouseDragged(e)
+        @controller.process_scroll_event e
+      end
+
+      def mouseMoved(e)
+      end
+
+      # From KeyListener
+
+      def keyTyped(e)
+        @controller.process_key_event e
+      end
+
+      def keyPressed(e)
+      end
+
+      def keyReleased(e)
       end
 
       # From SettingsChangedListener
@@ -31,16 +59,16 @@ module BFM
         draw_cell_raster if @show_raster
         draw_font_chars
         repaint
-        set_size(@render_width, @render_height)
-        set_preferred_size(Dimension.new(@render_width, @render_height))
+        size = @render_width, @render_height
+        preferred_size = Dimension.new(@render_width, @render_height)
       end
 
       # From JComponent
 
       def paintComponent( g )
         super
-        on_settings_changed(nil, nil) unless @buffer
-        g.draw_image(@buffer, 0, 0, @render_width, @render_height, nil)
+        on_settings_changed nil, nil unless @buffer
+        g.draw_image @buffer, 0, 0, @render_width, @render_height, nil
       end
 
       # Implementation
@@ -54,8 +82,8 @@ module BFM
         @cell_offset = @controller.selected_cell_offset
         @cells_per_row = @controller.selected_cells_per_row
         @cells_per_column = @controller.selected_cells_per_column
-        @cell_raster_width = @cell_size * @cells_per_row
-        @cell_raster_height = @cell_size * @cells_per_column
+        @cell_raster_width = @cell_size.width * @cells_per_row
+        @cell_raster_height = @cell_size.height * @cells_per_column
         @render_width = @cell_raster_width * @zoom_factor
         @render_height = @cell_raster_height * @zoom_factor
       end
@@ -82,32 +110,34 @@ module BFM
       end
 
       def clear_background
-        @buffer_graphics.set_color(Color::WHITE)
-        @buffer_graphics.fill_rect(0, 0, width, height)
+        @buffer_graphics.color = @controller.background_color
+        @buffer_graphics.fill_rect 0, 0, width, height
       end
 
       def draw_cell_raster
-        @buffer_graphics.set_color(Color::LIGHT_GRAY)
+        @buffer_graphics.color = @controller.raster_color
         0.upto(@cells_per_row - 1) do |idx|
-          @buffer_graphics.draw_line(idx * @cell_size, 0, idx * @cell_size, @cell_raster_height)
+          @buffer_graphics.draw_line idx * @cell_size.width, 0, idx * @cell_size.width, @cell_raster_height
         end
         0.upto(@cells_per_column - 1) do |idx|
-          @buffer_graphics.draw_line(0, idx * @cell_size, @cell_raster_width, idx * @cell_size)
+          @buffer_graphics.draw_line 0, idx * @cell_size.height, @cell_raster_width, idx * @cell_size.height
         end
       end
 
       def draw_font_chars
-        @buffer_graphics.set_color(Color::BLACK)
+        @buffer_graphics.color = @controller.font_color
         0.upto(@cells_per_column - 1) do |column|
-          y = column * @cell_size
+          y = column * @cell_size.height
           0.upto(@cells_per_row - 1) do |row|
-            x = row * @cell_size
+            x = row * @cell_size.width
             char_index = 32 + row + column * @cells_per_row
             @char_buffer[ 0 ] = char_index
-            bounds = @font.getStringBounds(@char_buffer, 0, 1, @buffer_graphics.font_render_context)
-            @buffer_graphics.draw_chars(@char_buffer, 0, 1, x - bounds.x, @cell_offset + y - bounds.y)
+            bounds = @font.get_string_bounds(@char_buffer, 0, 1, @buffer_graphics.font_render_context)
+            @buffer_graphics.set_clip x, y, @cell_size.width, @cell_size.height
+            @buffer_graphics.draw_chars @char_buffer, 0, 1, @cell_offset.left + x - bounds.x, @cell_offset.top + y - bounds.y
           end
         end
+        @buffer_graphics.set_clip 0, 0, @cell_raster_width, @cell_raster_height
       end
 
     end

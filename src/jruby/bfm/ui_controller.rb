@@ -4,10 +4,7 @@ module BFM
 
   class UiController
 
-    SETTINGS_ID_FONT_NAME = :FONT_NAME
-    SETTINGS_ID_FONT_SIZE = :FONT_SIZE
-    SETTINGS_ID_CELL_SIZE = :CELL_SIZE
-    SETTINGS_ID_CELL_OFFSET = :CELL_OFFSET
+    SETTINGS_ID_UNKNOWN = :UNKNOWN
 
     DEFAULT_CELLS_PER_ROW = 16
     DEFAULT_CELLS_PER_COLUMN = 8
@@ -19,24 +16,20 @@ module BFM
       @listeners = Array.new
     end
 
+    def process_key_event(event)
+      puts event
+    end
+
+    def process_scroll_event(event)
+      puts event
+    end
+
     def add_settings_changed_listener(listener)
       @listeners << listener
     end
 
-    def on_font_name_changed(font_name)
-      broadcast SETTINGS_ID_FONT_NAME, font_name
-    end
-
-    def on_font_size_changed(size)
-      broadcast SETTINGS_ID_FONT_SIZE, size
-    end
-
-    def on_cell_size_changed(size)
-      broadcast SETTINGS_ID_CELL_SIZE, size
-    end
-
-    def on_cell_offset_changed(offset)
-      broadcast SETTINGS_ID_CELL_OFFSET, offset
+    def on_settings_changed(id = SETTINGS_ID_UNKNOWN, value = nil)
+      broadcast id, value
     end
 
     private
@@ -49,12 +42,28 @@ module BFM
 
     public
 
+    def background_color
+      Color::BLACK
+    end
+
+    def raster_color
+      Color::DARK_GRAY
+    end
+
+    def font_color
+      Color::WHITE
+    end
+
     def set_font_settings_provider(provider)
       @font_settings = provider
     end
 
     def set_cell_settings_provider(provider)
       @cell_settings = provider
+    end
+
+    def set_view_settings_provider(provider)
+      @view_settings = provider
     end
 
     def selected_font_name
@@ -82,11 +91,11 @@ module BFM
     end
 
     def selected_zoom_factor
-      DEFAULT_ZOOM_FACTOR
+      @view_settings.selected_zoom
     end
 
     def selected_show_raster_flag
-      DEFAULT_SHOW_RASTER_FLAG
+      @view_settings.selected_show_raster
     end
 
   end
