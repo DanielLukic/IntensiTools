@@ -63,6 +63,7 @@ module BFM
         update_font_if_necessary
         clear_background
         draw_cell_raster if @show_raster
+        draw_cell_offset if @show_offset
         draw_font_chars
         repaint
         set_size @render_width, @render_height
@@ -130,6 +131,17 @@ module BFM
         @grid_config.each_cell do |cell|
           @buffer_graphics.draw_line cell.x, cell.y, cell.x + cell.width - 1, cell.y
           @buffer_graphics.draw_line cell.x, cell.y, cell.x, cell.y + cell.height - 1
+        end
+      end
+
+      def draw_cell_offset
+        @buffer_graphics.color = @controller.raster_color
+        @grid_config.each_cell do |cell|
+          x1 = cell.x + @grid_config.cell_offset.left
+          y1 = cell.y + @grid_config.cell_offset.top
+          x2 = cell.x + cell.height + @grid_config.cell_offset.right
+          y2 = cell.y + cell.width + @grid_config.cell_offset.bottom
+          @buffer_graphics.fill_rect x1, y1, x2 - x1, y2 - y1
         end
       end
 

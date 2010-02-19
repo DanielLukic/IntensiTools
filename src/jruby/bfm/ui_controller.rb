@@ -15,6 +15,8 @@ module BFM
       @zoom = INITIAL_ZOOM
       @show_raster = @show_offset = false
       @char_grid_configuration = BFM::CharGridConfiguration.new
+      @cell_size = @char_grid_configuration.cell_size
+      @cell_offset = @char_grid_configuration.cell_offset
     end
 
     def set_font_settings_provider(provider)
@@ -56,8 +58,8 @@ module BFM
     private
 
     def update_char_grid_configuration
-      @char_grid_configuration.cell_size = @cell_settings.cell_size
-      @char_grid_configuration.cell_offset = @cell_settings.cell_offset
+      @char_grid_configuration.cell_size = @cell_size
+      @char_grid_configuration.cell_offset = @cell_offset
     end
 
     def broadcast(settings_id, settings_value)
@@ -80,7 +82,7 @@ module BFM
       Color::WHITE
     end
 
-    attr_accessor :zoom, :show_raster, :show_offset
+    attr_accessor :zoom, :show_raster, :show_offset, :cell_size, :cell_offset
 
     def selected_font_name
       @font_settings.selected_font_name

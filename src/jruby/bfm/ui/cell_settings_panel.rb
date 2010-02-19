@@ -54,7 +54,27 @@ module BFM
         notify_new_cell_offset
       end
 
+      # From ChangeListener
+
+      def stateChanged(event)
+        if event.source == @cell_size_spinner
+          notify_new_cell_size
+        elsif event.source == @cell_offset_spinner
+          notify_new_cell_offset
+        else
+          raise RuntimeException.new(event.to_s)
+        end
+      end
+
       private
+
+      def notify_new_cell_size
+        @controller.on_settings_changed :cell_size, @cell_size
+      end
+
+      def notify_new_cell_offset
+        @controller.on_settings_changed :cell_offset, @cell_offset
+      end
 
       def add_size_controls(panel, size_id)
         initial_size = @controller.char_grid_configuration.cell_size.send size_id
@@ -85,38 +105,6 @@ module BFM
         label = JLabel.new(text)
         label.set_label_for component
         label
-      end
-
-      # From ChangeListener
-
-      public
-
-      def stateChanged(event)
-        if event.source == @cell_size_spinner
-          notify_new_cell_size
-        elsif event.source == @cell_offset_spinner
-          notify_new_cell_offset
-        else
-          raise RuntimeException.new(event.to_s)
-        end
-      end
-
-      # From CellSettingsProvider
-
-      public
-
-      attr_reader :cell_size, :cell_offset
-
-      # Implementation
-
-      private
-
-      def notify_new_cell_size
-        @controller.on_settings_changed :cell_size, @cell_size
-      end
-
-      def notify_new_cell_offset
-        @controller.on_settings_changed :cell_offset, @cell_offset
       end
 
 
