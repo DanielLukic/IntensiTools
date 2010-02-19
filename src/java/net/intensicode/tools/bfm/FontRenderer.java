@@ -116,9 +116,9 @@ public final class FontRenderer
 //        return bounds;
 //        }
 
-    private Font makeFont( final String fontName, final int aFontSize )
+    private Font makeFont( final String aFontName, final int aFontSize )
         {
-        return new Font( fontName, Font.PLAIN, aFontSize );
+        return new Font( aFontName, Font.PLAIN, aFontSize );
         }
 
 
