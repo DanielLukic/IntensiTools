@@ -12,6 +12,7 @@ module BFM
 
       include java.awt.event.KeyListener
       include java.awt.event.MouseMotionListener
+      include java.awt.event.MouseWheelListener
 
       def initialize(controller, renderer)
         super()
@@ -19,11 +20,10 @@ module BFM
         @controller = controller
         @renderer = renderer
 
-        @char_buffer = Java::char[1].new
-
         @controller.add_settings_changed_listener(self)
 
         add_mouse_motion_listener self
+        add_mouse_wheel_listener self
         add_key_listener self
         set_focusable true
       end
@@ -35,6 +35,12 @@ module BFM
       end
 
       def mouseMoved(e)
+      end
+
+      # MouseWheelListener
+
+      def mouseWheelMoved(e)
+        @controller.process_wheel_event e
       end
 
       # From KeyListener
@@ -59,8 +65,8 @@ module BFM
         draw_cell_raster if @show_raster
         draw_font_chars
         repaint
-        size = @render_width, @render_height
-        preferred_size = Dimension.new(@render_width, @render_height)
+        set_size @render_width, @render_height
+        set_preferred_size Dimension.new(@render_width, @render_height)
       end
 
       # From JComponent
@@ -76,16 +82,21 @@ module BFM
       private
 
       def update_settings
-        @zoom_factor = @controller.selected_zoom_factor
-        @show_raster = @controller.selected_show_raster_flag
-        @cell_size = @controller.selected_cell_size
-        @cell_offset = @controller.selected_cell_offset
-        @cells_per_row = @controller.selected_cells_per_row
-        @cells_per_column = @controller.selected_cells_per_column
-        @cell_raster_width = @cell_size.width * @cells_per_row
-        @cell_raster_height = @cell_size.height * @cells_per_column
-        @render_width = @cell_raster_width * @zoom_factor
-        @render_height = @cell_raster_height * @zoom_factor
+        @zoom = @controller.zoom
+        @show_raster = @controller.show_raster
+        @show_offset = @controller.show_offset
+
+        @grid_config = @controller.char_grid_configuration
+
+        @cell_size = @grid_config.cell_size
+        @cell_offset = @grid_config.cell_offset
+        @grid_columns = @grid_config.columns
+        @grid_rows = @grid_config.rows
+        @cell_raster_width = @cell_size.width * @grid_columns
+        @cell_raster_height = @cell_size.height * @grid_rows
+
+        @render_width = @cell_raster_width * @zoom
+        @render_height = @cell_raster_height * @zoom
       end
 
       def update_buffer_if_necessary
@@ -116,28 +127,15 @@ module BFM
 
       def draw_cell_raster
         @buffer_graphics.color = @controller.raster_color
-        0.upto(@cells_per_row - 1) do |idx|
-          @buffer_graphics.draw_line idx * @cell_size.width, 0, idx * @cell_size.width, @cell_raster_height
-        end
-        0.upto(@cells_per_column - 1) do |idx|
-          @buffer_graphics.draw_line 0, idx * @cell_size.height, @cell_raster_width, idx * @cell_size.height
+        @grid_config.each_cell do |cell|
+          @buffer_graphics.draw_line cell.x, cell.y, cell.x + cell.width - 1, cell.y
+          @buffer_graphics.draw_line cell.x, cell.y, cell.x, cell.y + cell.height - 1
         end
       end
 
       def draw_font_chars
         @buffer_graphics.color = @controller.font_color
-        0.upto(@cells_per_column - 1) do |column|
-          y = column * @cell_size.height
-          0.upto(@cells_per_row - 1) do |row|
-            x = row * @cell_size.width
-            char_index = 32 + row + column * @cells_per_row
-            @char_buffer[ 0 ] = char_index
-            bounds = @font.get_string_bounds(@char_buffer, 0, 1, @buffer_graphics.font_render_context)
-            @buffer_graphics.set_clip x, y, @cell_size.width, @cell_size.height
-            @buffer_graphics.draw_chars @char_buffer, 0, 1, @cell_offset.left + x - bounds.x, @cell_offset.top + y - bounds.y
-          end
-        end
-        @buffer_graphics.set_clip 0, 0, @cell_raster_width, @cell_raster_height
+        @renderer.draw_char_grid @buffer_graphics, @grid_config
       end
 
     end

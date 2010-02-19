@@ -1,3 +1,5 @@
+require 'bfm/char_grid_configuration'
+
 module BFM
 
   module UI
@@ -11,30 +13,7 @@ module BFM
     import javax.swing.event.ChangeListener
     import java.util.logging.Logger
 
-
-    class CellSize
-
-      attr_accessor :width, :height
-
-      def initialize(initial_size)
-        @width = @height = initial_size
-      end
-
-    end
-
-
-    class CellOffset
-
-      attr_accessor :top, :left, :right, :bottom
-
-      def initialize
-        @top = @left = @right = @bottom = 0
-      end
-
-    end
-
-
-    class CellSettingsPanel < JPanel # implements ChangeListener, CellSettingsProvider
+    class CellSettingsPanel < JPanel
 
       include javax.swing.event.ChangeListener
 
@@ -42,8 +21,8 @@ module BFM
         super()
 
         @controller = controller
-        @cell_size = CellSize.new(INITIAL_CELL_SIZE)
-        @cell_offset = CellOffset.new
+        @cell_size = @controller.char_grid_configuration.cell_size
+        @cell_offset = @controller.char_grid_configuration.cell_offset
 
         cell_size_panel = JPanel.new(MigLayout.new)
         cell_size_panel.set_border(TitledBorder.new("Size"))
@@ -78,7 +57,8 @@ module BFM
       private
 
       def add_size_controls(panel, size_id)
-        cell_size_model = SpinnerNumberModel.new(INITIAL_CELL_SIZE, 4, 128, 1)
+        initial_size = @controller.char_grid_configuration.cell_size.send size_id
+        cell_size_model = SpinnerNumberModel.new(initial_size, 4, 128, 1)
         spinner = JSpinner.new(cell_size_model)
         spinner.add_change_listener CellSizeUpdater.new(self, size_id)
         label = create_label(size_id.to_s, spinner)
@@ -94,7 +74,8 @@ module BFM
       end
 
       def create_cell_offset_spinner(offset_id)
-        cell_offset_model = SpinnerNumberModel.new(0, -128, 128, 1)
+        initial_offset = @controller.char_grid_configuration.cell_offset.send offset_id
+        cell_offset_model = SpinnerNumberModel.new(initial_offset, -128, 128, 1)
         spinner = JSpinner.new(cell_offset_model)
         spinner.add_change_listener CellOffsetUpdater.new(self, offset_id)
         spinner
@@ -124,24 +105,18 @@ module BFM
 
       public
 
-      def selected_cell_size
-        @cell_size
-      end
-
-      def selected_cell_offset
-        @cell_offset
-      end
+      attr_reader :cell_size, :cell_offset
 
       # Implementation
 
       private
 
       def notify_new_cell_size
-        @controller.on_settings_changed
+        @controller.on_settings_changed :cell_size, @cell_size
       end
 
       def notify_new_cell_offset
-        @controller.on_settings_changed
+        @controller.on_settings_changed :cell_offset, @cell_offset
       end
 
 

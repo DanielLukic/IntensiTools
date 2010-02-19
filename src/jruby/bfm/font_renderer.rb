@@ -1,3 +1,5 @@
+require 'bfm/char_grid_configuration'
+
 module BFM
 
   import java.awt.Color
@@ -16,6 +18,8 @@ module BFM
 
       toolkit = Toolkit.default_toolkit
       @rendering_hints = toolkit.get_desktop_property("awt.font.desktophints")
+
+      @char_buffer = Java::char[1].new
     end
 
     def available_font_names
@@ -51,68 +55,21 @@ module BFM
       graphics.add_rendering_hints @rendering_hints if @rendering_hints
     end
 
-#    renderFont(  aFontSpec )
-#       
-#        renderContext = getFontRenderContext
-#        font = makeFont( aFontSpec.name, aFontSpec.size )
-#       .Double maxCharBounds = determineMaxCharBounds( font )
-#        charsToRender = LAST_CHAR_CODE_PLUS_ONE - FIRST_CHAR_CODE
-#        rowsToRender = ( charsToRender + CHARS_PER_ROW - 1 ) / CHARS_PER_ROW
-#        imageWidth = (int) ( CHARS_PER_ROW * maxCharBounds.getWidth )
-#        imageHeight = (int) ( rowsToRender * maxCharBounds.getHeight )
-#        image = createImage( imageWidth, imageHeight )
-#        graphics = image.createGraphics
-#       graphics.setColor( Color.BLACK )
-#       graphics.setFont( font )
-#
-#       int xPos = 0
-#       int yPos = 0
-#       for ( int idx = FIRST_CHAR_CODE idx < LAST_CHAR_CODE_PLUS_ONE idx++ )
-#           
-#           CHAR_BUFFER[0] = (char) idx
-#            bounds = font.getStringBounds( CHAR_BUFFER, 0, 1, renderContext )
-#           graphics.drawChars( CHAR_BUFFER, 0, 1, xPos, (int) ( yPos - bounds.getY ) )
-#           xPos += maxCharBounds.width
-#           if ( xPos >= imageWidth )
-#               
-#               xPos = 0
-#               yPos += maxCharBounds.height
-#           end
-#       end
-#
-#       return image
-#   end
-#
-#   private Rectangle2D.Double determineMaxCharBounds(  aFont )
-#       
-#       charContainer = char.new[1]
-#        renderContext = getFontRenderContext
-#
-#       .Double bounds = Rectangle2D.new.Double
-#       for ( int idx = FIRST_CHAR_CODE idx < LAST_CHAR_CODE_PLUS_ONE idx++ )
-#           
-#           charContainer[ 0 ] = (char) idx
-#            charBounds = aFont.getStringBounds( charContainer, 0, 1, renderContext )
-#           bounds.width = Math.max( bounds.width, charBounds.getWidth )
-#           bounds.height = Math.max( bounds.height, charBounds.getHeight )
-#       end
-#       return bounds
-#   end
-#
-#   private Rectangle2D.Double determineImageBounds( [] font_names,  font_size )
-#       
-#        renderContext = getFontRenderContext
-#
-#       .Double bounds = Rectangle2D.new.Double
-#       for (  fontName : font_names )
-#           
-#            font = makeFont( fontName, font_size )
-#            fontBounds = font.getStringBounds( fontName, renderContext )
-#           bounds.width = Math.max( bounds.width, fontBounds.getWidth )
-#           bounds.height += fontBounds.getHeight
-#       end
-#       return bounds
-#   end
+    def draw_char_grid(graphics, grid_config)
+      font = graphics.font
+      context = graphics.font_render_context
+      offset = grid_config.cell_offset
+      cell_size = grid_config.cell_size
+      grid_config.each_cell do |cell|
+        @char_buffer[ 0 ] = cell.char_code
+        bounds = font.get_string_bounds(@char_buffer, 0, 1, context)
+        x = offset.left + cell.x - bounds.x
+        y = offset.top + cell.y - bounds.y
+        graphics.set_clip cell.x, cell.y, cell_size.width, cell_size.height
+        graphics.draw_chars @char_buffer, 0, 1, x, y
+      end
+      graphics.set_clip 0, 0, grid_config.grid_full_width, grid_config.grid_full_height
+    end
 
   end
 

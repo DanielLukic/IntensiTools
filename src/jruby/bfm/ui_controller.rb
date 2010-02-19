@@ -1,3 +1,5 @@
+require 'bfm/char_grid_configuration'
+
 module BFM
 
   import java.util.ArrayList
@@ -6,14 +8,25 @@ module BFM
 
     SETTINGS_ID_UNKNOWN = :UNKNOWN
 
-    DEFAULT_CELLS_PER_ROW = 16
-    DEFAULT_CELLS_PER_COLUMN = 8
-    DEFAULT_ZOOM_FACTOR = 4
-    DEFAULT_SHOW_RASTER_FLAG = true
-
+    INITIAL_ZOOM = 2
 
     def initialize
       @listeners = Array.new
+      @zoom = INITIAL_ZOOM
+      @show_raster = @show_offset = false
+      @char_grid_configuration = BFM::CharGridConfiguration.new
+    end
+
+    def set_font_settings_provider(provider)
+      @font_settings = provider
+    end
+
+    def set_cell_settings_provider(provider)
+      @cell_settings = provider
+    end
+
+    def set_view_settings_provider(provider)
+      @view_settings = provider
     end
 
     def process_key_event(event)
@@ -24,15 +37,28 @@ module BFM
       puts event
     end
 
+    def process_wheel_event(event)
+      plus_or_minus_one = event.wheel_rotation
+      @view_settings.adjust_zoom plus_or_minus_one
+    end
+
     def add_settings_changed_listener(listener)
       @listeners << listener
     end
 
     def on_settings_changed(id = SETTINGS_ID_UNKNOWN, value = nil)
+      puts "setting #{id} to #{value}"
+      send "#{id}=".to_sym, value if id != SETTINGS_ID_UNKNOWN
+      update_char_grid_configuration
       broadcast id, value
     end
 
     private
+
+    def update_char_grid_configuration
+      @char_grid_configuration.cell_size = @cell_settings.cell_size
+      @char_grid_configuration.cell_offset = @cell_settings.cell_offset
+    end
 
     def broadcast(settings_id, settings_value)
       @listeners.each do |listener|
@@ -54,17 +80,7 @@ module BFM
       Color::WHITE
     end
 
-    def set_font_settings_provider(provider)
-      @font_settings = provider
-    end
-
-    def set_cell_settings_provider(provider)
-      @cell_settings = provider
-    end
-
-    def set_view_settings_provider(provider)
-      @view_settings = provider
-    end
+    attr_accessor :zoom, :show_raster, :show_offset
 
     def selected_font_name
       @font_settings.selected_font_name
@@ -74,28 +90,8 @@ module BFM
       @font_settings.selected_font_size
     end
 
-    def selected_cell_size
-      @cell_settings.selected_cell_size
-    end
-
-    def selected_cell_offset
-      @cell_settings.selected_cell_offset
-    end
-
-    def selected_cells_per_row
-      DEFAULT_CELLS_PER_ROW
-    end
-
-    def selected_cells_per_column
-      DEFAULT_CELLS_PER_COLUMN
-    end
-
-    def selected_zoom_factor
-      @view_settings.selected_zoom
-    end
-
-    def selected_show_raster_flag
-      @view_settings.selected_show_raster
+    def char_grid_configuration
+      @char_grid_configuration
     end
 
   end
