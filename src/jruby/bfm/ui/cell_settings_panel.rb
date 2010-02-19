@@ -24,6 +24,8 @@ module BFM
         @cell_size = @controller.char_grid_configuration.cell_size
         @cell_offset = @controller.char_grid_configuration.cell_offset
 
+        @offset_models = Hash.new
+
         cell_size_panel = JPanel.new(MigLayout.new)
         cell_size_panel.set_border(TitledBorder.new("Size"))
         add_size_controls cell_size_panel, :width
@@ -42,6 +44,14 @@ module BFM
         add cell_offset_panel, "wrap"
 
         @controller.set_cell_settings_provider self
+      end
+
+      def adjust_cell_offset(offset_id, delta)
+        model = @offset_models[offset_id]
+        new_value = model.value + delta
+        return if new_value < model.minimum
+        return if new_value > model.maximum
+        model.value = new_value
       end
 
       def update_cell_size(size_id, spinner)
@@ -95,8 +105,8 @@ module BFM
 
       def create_cell_offset_spinner(offset_id)
         initial_offset = @controller.char_grid_configuration.cell_offset.send offset_id
-        cell_offset_model = SpinnerNumberModel.new(initial_offset, -128, 128, 1)
-        spinner = JSpinner.new(cell_offset_model)
+        @offset_models[offset_id] = SpinnerNumberModel.new(initial_offset, -128, 128, 1)
+        spinner = JSpinner.new(@offset_models[offset_id])
         spinner.add_change_listener CellOffsetUpdater.new(self, offset_id)
         spinner
       end

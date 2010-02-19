@@ -11,8 +11,9 @@ module BFM
     class FontCellRenderPanel < JPanel
 
       include java.awt.event.KeyListener
-      include java.awt.event.MouseMotionListener
+      include java.awt.event.MouseListener
       include java.awt.event.MouseWheelListener
+      include java.awt.event.MouseMotionListener
 
       def initialize(controller, renderer)
         super()
@@ -24,6 +25,7 @@ module BFM
 
         add_mouse_motion_listener self
         add_mouse_wheel_listener self
+        add_mouse_listener self
         add_key_listener self
         set_focusable true
       end
@@ -43,6 +45,24 @@ module BFM
         @controller.process_wheel_event e
       end
 
+      # From MouseListener
+
+      def mouseClicked(e)
+        request_focus false
+      end
+
+      def mouseEntered(e)
+      end
+
+      def mouseExited(e)
+      end
+
+      def mousePressed(e)
+      end
+
+      def mouseReleased(e)
+      end
+
       # From KeyListener
 
       def keyTyped(e)
@@ -50,9 +70,11 @@ module BFM
       end
 
       def keyPressed(e)
+        @controller.process_key_event e
       end
 
       def keyReleased(e)
+        @controller.process_key_event e
       end
 
       # From SettingsChangedListener

@@ -2,6 +2,7 @@ require 'bfm/char_grid_configuration'
 
 module BFM
 
+  import java.awt.event.KeyEvent
   import java.util.ArrayList
 
   class UiController
@@ -32,7 +33,11 @@ module BFM
     end
 
     def process_key_event(event)
-      puts event
+      return unless event.get_id == KeyEvent::KEY_PRESSED
+      @cell_settings.adjust_cell_offset :top, -1 if event.key_code == KeyEvent::VK_UP
+      @cell_settings.adjust_cell_offset :top, +1 if event.key_code == KeyEvent::VK_DOWN
+      @cell_settings.adjust_cell_offset :left, -1 if event.key_code == KeyEvent::VK_LEFT
+      @cell_settings.adjust_cell_offset :left, +1 if event.key_code == KeyEvent::VK_RIGHT
     end
 
     def process_scroll_event(event)
