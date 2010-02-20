@@ -133,8 +133,8 @@ module BFM
       end
 
       def update_font_if_necessary
-        name = @controller.selected_font_name
-        size = @controller.selected_font_size
+        name = @controller.font_name
+        size = @controller.font_size
         @font = @renderer.make_font(name, size) if new_font_necessary?(name, size)
         @buffer_graphics.font = @font if @buffer_graphics.font != @font
       end

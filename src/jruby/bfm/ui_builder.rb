@@ -4,6 +4,7 @@ module BFM
   
   require 'bfm/ui/cell_settings_panel'
   require 'bfm/ui/font_settings_panel'
+  require 'bfm/ui/operations_panel'
   require 'bfm/ui/render_panel'
   require 'bfm/ui/view_settings_panel'
 
@@ -24,6 +25,7 @@ module BFM
 
     def create_content
       top_panel = JPanel.new(MigLayout.new)
+      top_panel.add BFM::UI::OperationsPanel.new(@controller)
       top_panel.add BFM::UI::ViewSettingsPanel.new(@controller)
       top_panel.add BFM::UI::FontSettingsPanel.new(@controller, @renderer)
 

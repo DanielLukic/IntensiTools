@@ -1,3 +1,5 @@
+require 'yaml'
+
 require 'bfm/char_grid_configuration'
 
 module BFM
@@ -11,13 +13,17 @@ module BFM
 
     INITIAL_ZOOM = 2
 
-    def initialize
+    def initialize(renderer)
+      @renderer = renderer
+
       @listeners = Array.new
       @zoom = INITIAL_ZOOM
       @show_raster = @show_offset = false
       @char_grid_configuration = BFM::CharGridConfiguration.new
       @cell_size = @char_grid_configuration.cell_size
       @cell_offset = @char_grid_configuration.cell_offset
+
+      @current_folder = Dir.pwd
     end
 
     def set_font_settings_provider(provider)
@@ -89,16 +95,76 @@ module BFM
 
     attr_accessor :zoom, :show_raster, :show_offset, :cell_size, :cell_offset
 
-    def selected_font_name
-      @font_settings.selected_font_name
+    def font_name
+      @font_name || @font_settings.font_name
     end
 
-    def selected_font_size
-      @font_settings.selected_font_size
+    def font_name=(value)
+      @font_name = value
+    end
+
+    def font_size
+      @font_size || @font_settings.font_size
+    end
+
+    def font_size=(value)
+      @font_size = value
     end
 
     def char_grid_configuration
       @char_grid_configuration
+    end
+
+    attr_accessor :current_folder, :file
+
+    def file_opened?
+      not file.nil?
+    end
+
+    def load_from_file(file_path)
+      puts "load #{file_path}"
+      load_bfm_file file_path
+    end
+
+    def save_to_file(file_path)
+      puts "save #{file_path}"
+      save_bfm_file file_path
+      save_font_image file_path.sub('.bfm', '.png')
+    end
+
+    private
+
+    def load_bfm_file(file_path)
+      File.open(file_path, 'r') do |file|
+        data = YAML.load file
+        data.each do |key,value|
+          on_settings_changed key, value
+        end
+      end
+    end
+
+    def save_bfm_file(file_path)
+      File.open(file_path, 'w') do |file|
+        data = Hash.new
+        data[:zoom] = zoom
+        data[:show_raster] = show_raster
+        data[:show_offset] = show_offset
+        data[:cell_size] = cell_size
+        data[:cell_offset] = cell_offset
+        data[:font_name] = font_name
+        data[:font_size] = font_size
+        YAML.dump data, file
+      end
+    end
+
+    def save_font_image(file_path)
+      config = @char_grid_configuration
+      image = @renderer.create_image config.grid_full_width, config.grid_full_height
+      graphics = image.create_graphics
+      graphics.font = @renderer.make_font(font_name, font_size)
+      graphics.color = font_color
+      @renderer.draw_char_grid graphics, config
+      javax.imageio.ImageIO.write(image, "png", java.io.File.new(file_path))
     end
 
   end

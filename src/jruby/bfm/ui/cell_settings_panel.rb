@@ -24,6 +24,7 @@ module BFM
         @cell_size = @controller.char_grid_configuration.cell_size
         @cell_offset = @controller.char_grid_configuration.cell_offset
 
+        @size_models = Hash.new
         @offset_models = Hash.new
 
         cell_size_panel = JPanel.new(MigLayout.new)
@@ -44,6 +45,7 @@ module BFM
         add cell_offset_panel, "wrap"
 
         @controller.set_cell_settings_provider self
+        @controller.add_settings_changed_listener self
       end
 
       def adjust_cell_offset(offset_id, delta)
@@ -64,6 +66,11 @@ module BFM
         notify_new_cell_offset
       end
 
+      def on_settings_changed(settings_id, settings_value)
+        update_full_cell_size settings_value if settings_id == :cell_size
+        update_full_cell_offset settings_value if settings_id == :cell_offset
+      end
+
       # From ChangeListener
 
       def stateChanged(event)
@@ -78,6 +85,20 @@ module BFM
 
       private
 
+      def update_full_cell_size(new_or_unchanged_value)
+        @size_models.each do |key,model|
+          new_value = new_or_unchanged_value.send key
+          model.value = new_value if model.value != new_value
+        end
+      end
+
+      def update_full_cell_offset(new_or_unchanged_value)
+        @offset_models.each do |key,model|
+          new_value = new_or_unchanged_value.send key
+          model.value = new_value if model.value != new_value
+        end
+      end
+
       def notify_new_cell_size
         @controller.on_settings_changed :cell_size, @cell_size
       end
@@ -88,8 +109,8 @@ module BFM
 
       def add_size_controls(panel, size_id)
         initial_size = @controller.char_grid_configuration.cell_size.send size_id
-        cell_size_model = SpinnerNumberModel.new(initial_size, 4, 128, 1)
-        spinner = JSpinner.new(cell_size_model)
+        @size_models[size_id] = SpinnerNumberModel.new(initial_size, 4, 128, 1)
+        spinner = JSpinner.new(@size_models[size_id])
         spinner.add_change_listener CellSizeUpdater.new(self, size_id)
         label = create_label(size_id.to_s, spinner)
         panel.add spinner

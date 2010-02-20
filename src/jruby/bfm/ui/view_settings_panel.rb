@@ -52,6 +52,7 @@ module BFM
         add @offset_checkbox, "wrap"
 
         @controller.set_view_settings_provider self
+        @controller.add_settings_changed_listener self
       end
 
       def adjust_zoom(zoom_delta)
@@ -60,6 +61,12 @@ module BFM
         return if new_zoom < model.minimum
         return if new_zoom > model.maximum
         model.value = new_zoom
+      end
+
+      def on_settings_changed(settings_id, settings_value)
+        update_zoom settings_value if settings_id == :zoom
+        update_show_raster settings_value if settings_id == :show_raster
+        update_show_offset settings_value if settings_id == :show_offset
       end
 
       # From ActionListener
@@ -79,14 +86,26 @@ module BFM
 
       private
 
+      def update_zoom(new_or_unchanged_value)
+        @zoom_spinner.value = new_or_unchanged_value if @zoom_spinner.value != new_or_unchanged_value
+      end
+
+      def update_show_raster(new_or_unchanged_value)
+        @raster_checkbox.selected = new_or_unchanged_value if @raster_checkbox.selected != new_or_unchanged_value
+      end
+
+      def update_show_offset(new_or_unchanged_value)
+        @offset_checkbox.selected = new_or_unchanged_value if @offset_checkbox.selected != new_or_unchanged_value
+      end
+
       def toggle_show_raster
-        @show_raster = !@show_raster
-        @controller.on_settings_changed :show_raster, @show_raster
+        show_raster = @raster_checkbox.selected
+        @controller.on_settings_changed :show_raster, show_raster
       end
 
       def toggle_show_offset
-        @show_offset = !@show_offset
-        @controller.on_settings_changed :show_offset, @show_offset
+        show_offset = @offset_checkbox.selected
+        @controller.on_settings_changed :show_offset, show_offset
       end
 
     end
