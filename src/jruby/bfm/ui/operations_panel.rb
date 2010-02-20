@@ -47,7 +47,11 @@ module BFM
       end
 
       def trigger_save_or_save_dialog
-        trigger_save_dialog
+        if @controller.file_open?
+          @controller.save_to_file
+        else
+          trigger_save_dialog
+        end
       end
 
       def trigger_save_dialog

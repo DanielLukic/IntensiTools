@@ -52,7 +52,7 @@ module BFM
 
     def process_wheel_event(event)
       plus_or_minus_one = event.wheel_rotation
-      @view_settings.adjust_zoom plus_or_minus_one
+      @view_settings.adjust_zoom -plus_or_minus_one
     end
 
     def add_settings_changed_listener(listener)
@@ -114,22 +114,31 @@ module BFM
       @char_grid_configuration
     end
 
-    attr_accessor :current_folder, :file
+    attr_accessor :current_folder, :file_path
 
-    def file_opened?
-      not file.nil?
+    def file_open?
+      not file_path.nil?
     end
 
     def load_from_file(file_path)
+      puts "loading from #{file_path}"
       load_bfm_file file_path
+      update_current_file file_path
     end
 
-    def save_to_file(file_path)
+    def save_to_file(file_path = file_path)
+      puts "saving to #{file_path}"
       save_bfm_file file_path
       save_font_image file_path.sub('.bfm', '.png')
+      update_current_file file_path
     end
 
     private
+
+    def update_current_file(file_path)
+      @file_path = file_path
+      @current_folder = File.dirname(file_path)
+    end
 
     def load_bfm_file(file_path)
       File.open(file_path, 'r') do |file|
