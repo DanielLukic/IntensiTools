@@ -60,7 +60,6 @@ module BFM
     end
 
     def on_settings_changed(id = SETTINGS_ID_UNKNOWN, value = nil)
-      puts "setting #{id} to #{value}"
       send "#{id}=".to_sym, value if id != SETTINGS_ID_UNKNOWN
       update_char_grid_configuration
       broadcast id, value
@@ -122,12 +121,10 @@ module BFM
     end
 
     def load_from_file(file_path)
-      puts "load #{file_path}"
       load_bfm_file file_path
     end
 
     def save_to_file(file_path)
-      puts "save #{file_path}"
       save_bfm_file file_path
       save_font_image file_path.sub('.bfm', '.png')
     end
