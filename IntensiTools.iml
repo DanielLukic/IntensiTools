@@ -30,6 +30,7 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="library" name="JRuby SDK 1.x facet library" level="application" />
   </component>
   <component name="PluginUploader.PluginUploadConfigurable">
     <option name="ARCHIVE_PATH" />
