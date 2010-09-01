@@ -94,11 +94,15 @@ module BFM
         @icon_to_name_map = Hash.new
         @name_to_icon_map = Hash.new
         @renderer.available_font_names.each do |name|
-          image = @renderer.render_font_name(name, FONT_SIZE_FOR_FONT_BOX)
-          icon = ImageIcon.new(image)
-          @icon_to_name_map[icon] = name
-          @name_to_icon_map[name] = icon
-          @fonts_as_icons << icon
+          begin
+            image = @renderer.render_font_name(name, FONT_SIZE_FOR_FONT_BOX)
+            icon = ImageIcon.new(image)
+            @icon_to_name_map[icon] = name
+            @name_to_icon_map[name] = icon
+            @fonts_as_icons << icon
+          rescue Exception => e
+            puts "Skipping bad font #{name}"
+          end
         end
       end
 
