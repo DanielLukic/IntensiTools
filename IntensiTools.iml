@@ -3,7 +3,7 @@
   <component name="FacetManager">
     <facet type="JRUBY" name="JRuby">
       <configuration>
-        <JRUBY_FACET_CONFIG_ID NAME="JRUBY_SDK_NAME" VALUE="JRuby SDK 1.x" />
+        <JRUBY_FACET_CONFIG_ID NAME="JRUBY_SDK_NAME" VALUE="JRuby SDK 1.5.x" />
         <JRUBY_FACET_CONFIG_ID NAME="NUMBER" VALUE="1" />
         <JRUBY_FACET_CONFIG_ID NAME="CHECKED0" VALUE="true" />
         <JRUBY_FACET_CONFIG_ID NAME="DIR0" VALUE="$MODULE_DIR$/src/jruby" />
@@ -30,7 +30,7 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="library" name="JRuby SDK 1.x facet library" level="application" />
+    <orderEntry type="library" name="JRuby SDK 1.5.x facet library" level="application" />
   </component>
   <component name="PluginUploader.PluginUploadConfigurable">
     <option name="ARCHIVE_PATH" />
